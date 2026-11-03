@@ -1,0 +1,21 @@
+// Prints per-class and per-project test results so the build log states how many tests ran/passed/skipped.
+allprojects {
+	tasks.withType(Test) { t ->
+		t.testLogging {
+			events 'failed', 'skipped'
+			exceptionFormat 'full'
+		}
+		t.afterTest { desc, result ->
+			if (result.resultType == TestResult.ResultType.SKIPPED) {
+				logger.lifecycle("SEAL SKIPPED: ${desc.className}.${desc.name}")
+			}
+		}
+		t.afterSuite { desc, result ->
+			if (desc.parent == null) {
+				logger.lifecycle("SEAL TEST SUMMARY [${t.project.name}]: tests=${result.testCount} passed=${result.successfulTestCount} failed=${result.failedTestCount} skipped=${result.skippedTestCount} result=${result.resultType}")
+			} else if (desc.className != null && desc.name == desc.className) {
+				logger.lifecycle("SEAL CLASS ${desc.className}: tests=${result.testCount} passed=${result.successfulTestCount} failed=${result.failedTestCount} skipped=${result.skippedTestCount}")
+			}
+		}
+	}
+}
